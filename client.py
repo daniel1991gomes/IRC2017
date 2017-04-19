@@ -1,9 +1,8 @@
 #!/usr/bin/python
 
 import socket
-
 HOST = socket.gethostname()
-PORT = 7070
+PORT = 8080
 
 
 def main():

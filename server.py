@@ -1,27 +1,52 @@
 #!/usr/bin/python
 
 import socket
+import select
 
 HOST = "0.0.0.0"
-PORT = 7070
+PORT = 8080
 
 
 def main():
-    s = socket.socket()
-    s.bind((HOST, PORT))
-    s.listen(5)
-
     try:
-        while True:
-            c, addr = s.accept()
-            print('Got connection from {}'.format(addr))
-            msg = c.recv(1024)
-            print("Received: {}".format(msg))
-            c.send(b'FUTEBOL 0')
+        # Setup server socket
+        server = socket.socket()
+        server.setblocking(0)
+        server.bind((HOST, PORT))
+        server.listen(5)
+        print('Listening for connections at: {}:{}'.format(HOST, PORT))
 
+        # Sockets from which we expect to read
+        inputs = [server]
+
+        # Wait of socket activity
+        while inputs:
+            inputready, outputready, exceptready = select.select(inputs, [], inputs)
+
+            # Check which socket had activity
+            for s in inputready:
+                if s is server:
+                    # A server socket is ready to accept a connection
+                    c, addr = s.accept()
+                    print('Got connection from {}'.format(addr))
+                    inputs.append(c)
+                else:
+                    # A connected client has sent data
+                    data = s.recv(1024)
+                    if data:
+                        parse_message(s, data)
+                    else:
+                        # Interpret empty result as closed connection
+                        print('Client disconnected')
+                        inputs.remove(s)
+                        s.close()
     finally:
-        print('Closing socket')
-        c.close()
+        server.close()
+
+
+def parse_message(s, message):
+    print("Received: {}".format(message))
+    s.send(message)
 
 
 if __name__ == "__main__":
