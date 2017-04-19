@@ -13,7 +13,8 @@ try:
     while True:
         c, addr = s.accept()
         print('Got connection from {}'.format(addr))
-        print("Received: {}".format(c.recv(1024)))
+        msg = c.recv(1024)
+        print("Received: {}".format(msg))
         c.close()
 finally:
     print('Closing socket')

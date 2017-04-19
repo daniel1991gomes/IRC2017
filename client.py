@@ -7,5 +7,9 @@ host = socket.gethostname()
 port = 7070
 
 s.connect((host, port))
-s.send(b'Thank you for connecting')
+
+msg = b'Thank you for connecting'
+print("Sending: {}".format(msg))
+
+s.send(msg)
 s.close()
