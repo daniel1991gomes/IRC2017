@@ -2,14 +2,22 @@
 
 import socket
 
-s = socket.socket()
-host = socket.gethostname()
-port = 7070
+HOST = socket.gethostname()
+PORT = 7070
 
-s.connect((host, port))
 
-msg = b'Thank you for connecting'
-print("Sending: {}".format(msg))
+def main():
+    s = socket.socket()
+    s.connect((HOST, PORT))
 
-s.send(msg)
-s.close()
+    msg = b'GETRESULTS FUTEBOL'
+    print("Sending: {}".format(msg))
+    s.send(msg)
+
+    rsp = s.recv(1024)
+    print("Received: {}".format(rsp))
+    s.close()
+
+
+if __name__ == "__main__":
+    main()
