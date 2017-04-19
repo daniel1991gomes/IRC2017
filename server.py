@@ -21,7 +21,7 @@ def main():
 
         # Wait of socket activity
         while inputs:
-            inputready, outputready, exceptready = select.select(inputs, [], inputs)
+            inputready, _, _ = select.select(inputs, [], [])
 
             # Check which socket had activity
             for s in inputready:
