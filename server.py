@@ -35,7 +35,7 @@ def main():
                 c.close()
                 continue
 
-            # Check if election is open
+            # Get Client ID
             message = c.recv(1024)
             if message is None:
                 print('Client disconnected: {}'.format(addr))
@@ -52,7 +52,7 @@ def main():
                 c.close()
                 continue
 
-            # Vote
+            # Vote on Team
             message = c.recv(1024)
             if message is None:
                 print('Client disconnected: {}'.format(addr))
