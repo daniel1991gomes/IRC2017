@@ -46,7 +46,30 @@ def main():
 
 def parse_message(s, message):
     print("Received: {}".format(message))
+
+    msg = message.decode().split(" ")
+
+    if msg[0] == "GETRESULTS":
+        m = get_results(msg[1])
+    if msg[0] == "VOTE":
+        m = vote(msg[1])
+
+    message = str.encode(m)
     s.send(message)
+
+def get_results(name):
+    m = "ELEIcAO NAO ABRIU"
+    f = open("elections.txt").read()
+    if name in f:
+        for l in f.splitlines():
+            if l.split()[0] == name:
+                estado = l.split()[1]
+                if estado == "1":
+                    m = "ELEIcAO ESTA A DECORRER"
+                elif estado == "2":
+                    m = open(name + ".txt").read()
+    return m
+
 
 
 if __name__ == "__main__":
