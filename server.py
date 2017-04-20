@@ -1,75 +1,99 @@
 #!/usr/bin/python
 
 import socket
-import select
 
 HOST = "0.0.0.0"
-PORT = 8080
+PORT = 9090
 
 
 def main():
     try:
-        # Setup server socket
+        # Receive client connections
         server = socket.socket()
-        server.setblocking(0)
         server.bind((HOST, PORT))
         server.listen(5)
         print('Listening for connections at: {}:{}'.format(HOST, PORT))
 
-        # Sockets from which we expect to read
-        inputs = [server]
+        while True:
+            # Client connected
+            c, addr = server.accept()
+            print('Client connected: {}'.format(addr))
 
-        # Wait of socket activity
-        while inputs:
-            inputready, _, _ = select.select(inputs, [], [])
+            # Check if election is open
+            message = c.recv(1024)
+            if message is None:
+                print('Client disconnected: {}'.format(addr))
+                c.close()
+                continue
+            print("Received: {}".format(message))
+            msg = message.decode().split()
+            if msg[0] == "GETRESULTS":
+                m = get_results(msg[1])
+                c.send(str.encode(m))
+            else:
+                print('Invalid Command: {}'.format(msg[0]))
+                c.close()
+                continue
 
-            # Check which socket had activity
-            for s in inputready:
-                if s is server:
-                    # A server socket is ready to accept a connection
-                    c, addr = s.accept()
-                    print('Got connection from {}'.format(addr))
-                    inputs.append(c)
-                else:
-                    # A connected client has sent data
-                    data = s.recv(1024)
-                    if data:
-                        parse_message(s, data)
-                    else:
-                        # Interpret empty result as closed connection
-                        print('Client disconnected')
-                        inputs.remove(s)
-                        s.close()
+            # Check if election is open
+            message = c.recv(1024)
+            if message is None:
+                print('Client disconnected: {}'.format(addr))
+                c.close()
+                continue
+            print("Received: {}".format(message))
+            msg = message.decode().split()
+            vote_id = ''
+            if msg[0] == "ID":
+                vote_id = msg[1]
+                c.send(str.encode("SUCCESS"))
+            else:
+                print('Invalid Command: {}'.format(msg[0]))
+                c.close()
+                continue
+
+            # Vote
+            message = c.recv(1024)
+            if message is None:
+                print('Client disconnected: {}'.format(addr))
+                c.close()
+                continue
+            print("Received: {}".format(message))
+            msg = message.decode().split()
+            vote = ''
+            if msg[0] == "VOTE":
+                vote = msg[1]
+                c.send(str.encode("SUCCESS"))
+            else:
+                print('Invalid Command: {}'.format(msg[0]))
+                c.close()
+                continue
+
+            print("Client {} voted on {}".format(vote_id, vote))
+
+    except KeyboardInterrupt:
+        print("Shutting Down...")
+        server.close()
+    except Exception as e:
+        print(e)
+        server.close()
     finally:
+        print("Finally...")
         server.close()
 
 
-def parse_message(s, message):
-    print("Received: {}".format(message))
-
-    msg = message.decode().split(" ")
-
-    if msg[0] == "GETRESULTS":
-        m = get_results(msg[1])
-    if msg[0] == "VOTE":
-        m = vote(msg[1])
-
-    message = str.encode(m)
-    s.send(message)
-
 def get_results(name):
-    m = "ELEIcAO NAO ABRIU"
+    m = "Not Found"
     f = open("elections.txt").read()
     if name in f:
         for l in f.splitlines():
             if l.split()[0] == name:
                 estado = l.split()[1]
                 if estado == "1":
-                    m = "ELEIcAO ESTA A DECORRER"
+                    m = "SUCCESS"
                 elif estado == "2":
                     m = open(name + ".txt").read()
     return m
-
 
 
 if __name__ == "__main__":
